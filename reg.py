@@ -6,8 +6,7 @@ df = pd.read_csv('raw_data_balances_sorted.csv', sep=',')
 df2 = pd.read_csv('data_balances.csv', sep=',')
 
 Xbal = []
-#for i in range(0, len(df2)):
-for i in range(0, 100):
+for i in range(0, len(df2)):
     Xbal.append(df2.Balances[i])
 
 print("Sorting data from csv...")
@@ -52,7 +51,7 @@ for balList in arrayOfWeightDivergence:
         px = []
         py = []
         for b, weight, date in expList:
-            px.append(pick)
+            px.append(abs(pick))
             py.append(weight)
             balance = b
             pick += 1

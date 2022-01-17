@@ -11,7 +11,7 @@ df = pd.read_csv('balance_deviation.csv', sep=',')
 df2 = pd.read_csv('data_balances.csv', sep=',')
 
 Xbal = []
-for i in range(0, 10):
+for i in range(0, len(df2)):
     Xbal.append(df2.Balances[i])
 
 rawBalanceGrowthMetrics = []
