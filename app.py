@@ -16,22 +16,8 @@ balancesDeviationDF = pd.read_csv('balance_deviation.csv', sep=",")
 balancesDeviationRate = pd.read_csv("balance_deviation_rate.csv",sep=",")
 negWeightDF = pd.read_csv("neg_data_balances.csv",sep=",")
 tarBalancesDF = pd.read_csv("tar_data_balances.csv", sep=",")
+balDF = pd.read_csv('balance_all_val.csv', sep=',')
 print("Data read.")
-
-list1 = []
-list2 = []
-list3 = []
-for i in range(0, len(newDF)):
-    if newDF.ExceptionRate[i] >= 0.06 and newDF.NumMissions[i] >= 1000:
-        list1.append(newDF.Trucks[i])
-        list2.append(newDF.ExceptionRate[i])
-        list3.append(newDF.NumNegativeWeights[i])
-zipped = list(zip(list1, list2, list3))
-fig2DF = pd.DataFrame(zipped, columns=['Trucks', 'TARExceptions', 'NumNegativeWeights'])
-
-# make figure
-fig = px.scatter(figDF, x="missions", y="exceptions", color="names", hover_name="names", log_x=True)
-fig2 = px.bar(fig2DF, x="Trucks", y="NumNegativeWeights", color="Trucks", hover_name="Trucks")
 
 # new figure
 balancesFigure = px.scatter(balancesDF,x="NumMissions", y="AvgWeightDiff", color="Balances")
@@ -45,91 +31,64 @@ app.layout = html.Div(children=[
     html.H1(children='Balea Data Analysis'),
 
     dcc.Tabs([
-                dcc.Tab(label='Analysis', children=[
-            dcc.Tabs([
-                dcc.Tab(label='Difference between theory weight and observed weight Analysis', children=[
-                    dcc.Graph(
-                id='data-graph-balance-weight-diff',
-                figure=balancesFigure
-            ),
-                        dcc.Slider(
-                id='threshold-difference-weight',
-                min=0,
-                max=1.1,
-                step=0.01,
-                value=0
-
-            ),
-            html.Div(id='slider-output-difference-weight')
-                ]),
-                
-                dcc.Tab(label='Negative Rate Per Balance Analysis', children=[
-                    dcc.Graph(
-                id='data-graph-negative-rate',
-                figure=negWeightBalances
-            ),
-            dcc.Slider(
-                id='threshold-negative-rate',
-                min=0,
-                max=0.10,
-                step=0.01,
-                value=0
-
-            ),
-            html.Div(id='slider-output-container')
-                ]),
-                dcc.Tab(label='TAR Exception Per Balance Analysis', children=[
-                    dcc.Graph(
-                id='data-graph-tar-exception',
-                figure=tarExceptionBalances
-            ),
-
-            dcc.Slider(
-                id='threshold-tar-exception-rate',
-                min=0,
-                max=0.15,
-                step=0.01,
-                value=0
-
-            ),
-            html.Div(id='slider-output-tar-exception-rate')
-                ]),
-            ])
+        dcc.Tab(label='Différence entre poids théorique et mesuré', children=[
+            dcc.Graph(
+        id='data-graph-balance-weight-diff',
+        figure=balancesFigure
+    ),
+                dcc.Slider(
+        id='threshold-difference-weight',
+        min=0,
+        max=1.1,
+        step=0.01,
+        value=0.4
+    ),
+    html.Div(id='slider-output-difference-weight')
         ]),
-        dcc.Tab(label='Data', children=[
-            dcc.Tabs([
-                dcc.Tab(label='Raw Data', children=[
-                    html.Div(children='''
-                        Header table of the raw data.
-                    '''),
-                    dash_table.DataTable(
-                    id = 'table-head',
-                    columns = [{"name":i, "id":i} for i in df.columns],
-                    data = df.to_dict('records'),
-                    page_size=50
-                    )
-                ]),
+        
+        dcc.Tab(label='Analyse ratio négatif par Balance', children=[
+            dcc.Graph(
+        id='data-graph-negative-rate',
+        figure=negWeightBalances
+    ),
+    dcc.Slider(
+        id='threshold-negative-rate',
+        min=0,
+        max=0.10,
+        step=0.01,
+        value=0.03
 
-                dcc.Tab(label='Truck Data', children=[
-                    html.Div(children='''
-                        Synthesised table of data for each truck.
-                    '''),
-                    dash_table.DataTable(
-                    id = 'new-table',
-                    columns = [{"name":i, "id":i} for i in newDF.columns],
-                    data = newDF.to_dict('records')
-                    )
-                ]),
-                
-                dcc.Tab(label='Exceptions Graph', children=[
-                    dcc.Graph(
-                        id='graph-of-new-data',
-                        figure=fig
-                    )
-                ]),
-            ])
+    ),
+    html.Div(id='slider-output-container')
         ]),
+        dcc.Tab(label='Analyse TAR Exception par Balance', children=[
+            dcc.Graph(
+        id='data-graph-tar-exception',
+        figure=tarExceptionBalances
+    ),
 
+    dcc.Slider(
+        id='threshold-tar-exception-rate',
+        min=0,
+        max=0.15,
+        step=0.01,
+        value=0.05
+
+    ),
+    html.Div(id='slider-output-tar-exception-rate')
+        ]),
+    
+    dcc.Tab(label='Balances classés défectueuses', children=[
+        html.Div(id='slider-output-container-neg'),
+        html.Div(id='slider-output-container-tar'),
+        html.Div(id='slider-output-container-wgt'),
+        dash_table.DataTable(
+                id = 'data-list-bad-balances',
+                columns = [{"name":i, "id":i} for i in balDF.columns],
+                data = df.to_dict('records'),
+                page_size=50
+                ),
+        ]),
     ])
 ])
 
@@ -148,7 +107,6 @@ dash.dependencies.Output('slider-output-container', 'children'),
 [dash.dependencies.Input('threshold-negative-rate', 'value')])
 def update_output(value):
     return 'Threshold selected "{}"'.format(value)
-
 
 #Difference weight Per Balance Slider
 @app.callback(
@@ -182,7 +140,34 @@ dash.dependencies.Output('slider-output-tar-exception-rate', 'children'),
 def update_output(value):
     return 'Threshold selected "{}"'.format(value)
 
+@app.callback(
+dash.dependencies.Output('slider-output-container-neg', 'children'),
+[dash.dependencies.Input('threshold-negative-rate', 'value')])
+def update_output(value):
+    return 'Ratio seuil pour valeurs négatives : {}'.format(value)
 
+@app.callback(
+dash.dependencies.Output('slider-output-container-tar', 'children'),
+[dash.dependencies.Input('threshold-tar-exception-rate', 'value')])
+def update_output(value):
+    return 'Ratio seuil pour TAR Exceptions : {}'.format(value)
+
+@app.callback(
+dash.dependencies.Output('slider-output-container-wgt', 'children'),
+[dash.dependencies.Input('threshold-difference-weight', 'value')])
+def update_output(value):
+    return 'Valeur seuil pour poids : {}'.format(value)
+
+@app.callback(
+dash.dependencies.Output('data-list-bad-balances', 'figure'),
+[dash.dependencies.Input('threshold-tar-exception-rate', 'value'), dash.dependencies.Input('threshold-difference-weight', 'value'), dash.dependencies.Input('threshold-negative-rate', 'value')])
+def update_selected_balances(t1, t2, t3):
+    filtered_df = balDF[balDF.ExceptionRate>t1]
+    filtered_df = filtered_df[filtered_df.WeightDiff>t2]
+    filtered_df = filtered_df[filtered_df.NegRate>t3]
+    filtered_balancesFigure =  px.scatter(filtered_df,x="Missions", y="TARExceptionRate", color="Balance")
+    filtered_balancesFigure.update_layout(transition_duration=500)
+    return filtered_balancesFigure
 
 if __name__ == '__main__':
     app.run_server(debug=True)
