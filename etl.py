@@ -66,13 +66,13 @@ for i in range(0, len(df)):
     if df.Quantity[i] != 0:
         measuredWeight = df.Weight[i] / df.Quantity[i]
         if theoWeight != 0:
-            comboListWeights.append((df.TruckName[i], df.CorridorNumber[i], (measuredWeight - theoWeight)/theoWeight, df.Weight[i]))
+            comboListWeights.append((df.TruckName[i], df.CorridorNumber[i], abs(measuredWeight - theoWeight)/theoWeight, df.Weight[i]))
         else:
             comboListWeights.append((df.TruckName[i], df.CorridorNumber[i], 0, df.Weight[i]))
     else:
         measuredWeight = df.Weight[i]
         if theoWeight != 0:
-            comboListWeights.append((df.TruckName[i], df.CorridorNumber[i], (measuredWeight - theoWeight)/theoWeight, df.Weight[i]))
+            comboListWeights.append((df.TruckName[i], df.CorridorNumber[i], abs(measuredWeight - theoWeight)/theoWeight, df.Weight[i]))
         else:
             comboListWeights.append((df.TruckName[i], df.CorridorNumber[i], 0, df.Weight[i]))
 listOfDates = []
