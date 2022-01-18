@@ -19,11 +19,12 @@ tarBalancesDF = pd.read_csv("tar_data_balances.csv", sep=",")
 balDF = pd.read_csv('balance_all_val.csv', sep=',')
 print("Data read.")
 
+tableDF = balDF
+
 # new figure
 balancesFigure = px.scatter(balancesDF,x="NumMissions", y="AvgWeightDiff", color="Balances")
 negWeightBalances = px.scatter(negWeightDF,x="Missions", y="NegativeWeightRate", color="Balance")
 tarExceptionBalances = px.scatter(tarBalancesDF,x="Missions", y="TARExceptionRate", color="Balance")
-
 
 app = dash.Dash(__name__)
 
@@ -83,11 +84,11 @@ app.layout = html.Div(children=[
         html.Div(id='slider-output-container-tar'),
         html.Div(id='slider-output-container-wgt'),
         dash_table.DataTable(
-                id = 'data-list-bad-balances',
-                columns = [{"name":i, "id":i} for i in balDF.columns],
-                data = df.to_dict('records'),
-                page_size=50
-                ),
+                    id = 'data-list-bad-balances',
+                    columns = [{"name":i, "id":i} for i in sorted(tableDF.columns)],
+                    data = tableDF.to_dict('records'),
+                    page_size=25
+                    )
         ]),
     ])
 ])
@@ -159,15 +160,15 @@ def update_output(value):
     return 'Valeur seuil pour poids : {}'.format(value)
 
 @app.callback(
-dash.dependencies.Output('data-list-bad-balances', 'figure'),
-[dash.dependencies.Input('threshold-tar-exception-rate', 'value'), dash.dependencies.Input('threshold-difference-weight', 'value'), dash.dependencies.Input('threshold-negative-rate', 'value')])
+dash.dependencies.Output('data-list-bad-balances', 'data'),
+dash.dependencies.Input('threshold-tar-exception-rate', 'value'),
+dash.dependencies.Input('threshold-difference-weight', 'value'),
+dash.dependencies.Input('threshold-negative-rate', 'value'))
 def update_selected_balances(t1, t2, t3):
     filtered_df = balDF[balDF.ExceptionRate>t1]
     filtered_df = filtered_df[filtered_df.WeightDiff>t2]
-    filtered_df = filtered_df[filtered_df.NegRate>t3]
-    filtered_balancesFigure =  px.scatter(filtered_df,x="Missions", y="TARExceptionRate", color="Balance")
-    filtered_balancesFigure.update_layout(transition_duration=500)
-    return filtered_balancesFigure
+    tableDF = filtered_df[filtered_df.NegRate>t3]
+    return tableDF.to_dict('records')
 
 if __name__ == '__main__':
     app.run_server(debug=True)
