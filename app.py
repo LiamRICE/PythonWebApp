@@ -7,17 +7,11 @@ import plotly.express as px
 import pandas as pd
 
 print("Reading raw data...")
-df = pd.read_csv('data_balea.csv', sep=';')
-newDF = pd.read_csv('data_trucks.csv', sep=',')
-figDF = pd.read_csv('data_fig.csv', sep=',')
 #new csv regarding balances
 balancesDF = pd.read_csv('data_balances.csv', sep=",")
-balancesDeviationDF = pd.read_csv('balance_deviation.csv', sep=",")
-balancesDeviationRate = pd.read_csv("balance_deviation_rate.csv",sep=",")
 negWeightDF = pd.read_csv("neg_data_balances.csv",sep=",")
 tarBalancesDF = pd.read_csv("tar_data_balances.csv", sep=",")
 balDF = pd.read_csv('balance_all_val.csv', sep=',')
-print("Data read.")
 
 tableDF = balDF
 
@@ -25,6 +19,7 @@ tableDF = balDF
 balancesFigure = px.scatter(balancesDF,x="NumMissions", y="AvgWeightDiff", color="Balances")
 negWeightBalances = px.scatter(negWeightDF,x="Missions", y="NegativeWeightRate", color="Balance")
 tarExceptionBalances = px.scatter(tarBalancesDF,x="Missions", y="TARExceptionRate", color="Balance")
+print("Data read.")
 
 app = dash.Dash(__name__)
 
@@ -42,7 +37,7 @@ app.layout = html.Div(children=[
         min=0,
         max=1.1,
         step=0.01,
-        value=0.4
+        value=0.2
     ),
     html.Div(id='slider-output-difference-weight')
         ]),
@@ -57,7 +52,7 @@ app.layout = html.Div(children=[
         min=0,
         max=0.10,
         step=0.01,
-        value=0.03
+        value=0.02
 
     ),
     html.Div(id='slider-output-container')
@@ -145,7 +140,7 @@ def update_output(value):
 dash.dependencies.Output('slider-output-container-neg', 'children'),
 [dash.dependencies.Input('threshold-negative-rate', 'value')])
 def update_output(value):
-    return 'Ratio seuil pour valeurs négatives : {}'.format(value)
+    return 'Ratio seuil pour valeurs négatives : {}'.format(value/2)
 
 @app.callback(
 dash.dependencies.Output('slider-output-container-tar', 'children'),
@@ -157,7 +152,7 @@ def update_output(value):
 dash.dependencies.Output('slider-output-container-wgt', 'children'),
 [dash.dependencies.Input('threshold-difference-weight', 'value')])
 def update_output(value):
-    return 'Valeur seuil pour poids : {}'.format(value)
+    return 'Valeur seuil pour poids : {}'.format(value/2)
 
 @app.callback(
 dash.dependencies.Output('data-list-bad-balances', 'data'),
@@ -166,8 +161,8 @@ dash.dependencies.Input('threshold-difference-weight', 'value'),
 dash.dependencies.Input('threshold-negative-rate', 'value'))
 def update_selected_balances(t1, t2, t3):
     filtered_df = balDF[balDF.ExceptionRate>t1]
-    filtered_df = filtered_df[filtered_df.WeightDiff>t2]
-    tableDF = filtered_df[filtered_df.NegRate>t3]
+    filtered_df = filtered_df[filtered_df.WeightDiff>t2/2]
+    tableDF = filtered_df[filtered_df.NegRate>t3/2]
     return tableDF.to_dict('records')
 
 if __name__ == '__main__':
