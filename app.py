@@ -1,4 +1,5 @@
 # app
+from turtle import color
 import dash
 from dash import dash_table
 from dash import dcc
@@ -22,8 +23,34 @@ negWeightBalances = px.scatter(negWeightDF,x="Missions", y="NegativeWeightRate",
 tarExceptionBalances = px.scatter(tarBalancesDF,x="Missions", y="TARExceptionRate", color="Balance")
 print("Data read.")
 
+# style
+tabs_styles = {
+    'padding': '50px 0px' 
+}
+tab_style = {
+    'border-radius' : '3px',
+    'padding': '6px',
+    'fontWeight': 'bold',
+}
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SANDSTONE])
+tab_selected_style = {
+    'borderTop': '5px solid #839496',
+    'borderBottom': '5px solid #839496',
+    'backgroundColor': '#b58900',
+    'border-radius' : '3px',
+    'color': 'white',
+    'padding': '6px'
+}
+
+h1_style = {
+    'padding': '20px 0px' 
+}
+
+center_style ={
+  'margin': 'auto'
+}
+
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SOLAR])
 
 navbar = dbc.NavbarSimple(
     children=[
@@ -45,10 +72,14 @@ navbar = dbc.NavbarSimple(
 
 
 app.layout = html.Div(children=[
-    html.H1(children='Balea Data Analysis'),
+        dbc.Row(
+            dbc.Col(
+                html.H1(children='Balea Data Analysis', style=h1_style), width=4),
+                justify="center",
+            ),
 
-    dcc.Tabs([
-        dcc.Tab(label='Dashboard', children=[
+    dcc.Tabs(style=tabs_styles,children=[
+        dcc.Tab(label='Dashboard',style=tab_style, selected_style=tab_selected_style, children=[
             html.H2(children="Analyse de l'état des balances BALEA", style={'margin':'15px 15px 15px 15px'}),
             html.H3(children="Objectif :", style={'margin':'15px 15px 15px 15px'}),
             html.P(children="""L’objectif est d’identifier quels sont les facteurs qui permettent de déterminer si une balance est défectueuse, et ce, à partir d’un jeu de données. Nous étions encadrés par 2 professeures de Polytech, Gwladys TOULEMONDE et Anne LAURENT.""", style={'margin':'15px 15px 15px 15px'}),
@@ -58,8 +89,12 @@ app.layout = html.Div(children=[
             html.H3(children="Outils :", style={'margin':'15px 15px 15px 15px'}),
             html.P(children="""Concernant les outils utilisés, nous avons alterné nos choix selon nos besoins. Après avoir manipulé des jeux de données avec Shiny, un package R en Analyse Multidimensionnelle ou encore avec Panda, une bibliothèque Python en Entrepôt de données durant notre premier semestre d’IG4, nous avions connaissance des avantages et des inconvénients de ces outils.""", style={'margin':'15px 15px 15px 15px'}),
             html.P(children="""Le projet s’est déroulé en plusieurs étapes. Nous avons dû premièrement chercher à bien comprendre le sens des données fournies et à les organiser de façon à les exploiter dans le contexte du sujet. Ensuite à partir des méthodes d’analyse et de manipulation de données vu en cours de Data Mining, Analyse Multidimensionnelle et Entrepôts, nous avons choisi les méthodes les plus pertinentes avec le sujet et les données récoltées. Pour finir, nous avons implémentés ces méthodes et avons interprété leurs résultats. C'est principalement à ceci que sert ce dashboard.""", style={'margin':'15px 15px 15px 15px'}),
-        ], style={'margin':'15px 15px 15px 15px'}),
-        dcc.Tab(label='Différence entre poids théorique et mesuré', children=[
+        ],),
+        dcc.Tab(label='Différence entre poids théorique et mesuré', style=tab_style, selected_style=tab_selected_style, children=[
+            dbc.Card(
+            dbc.CardBody("Ce graphe intéractif permet d'étudier la différence de masse entre la masse théorique et la masse observée comme un indicateur de balance défectueuse. Le seuil de l'indicateur peut être modifié grâce au Slider. Un point représente une balance."),
+            className="mb-3",
+        ),
             dcc.Graph(
         id='data-graph-balance-weight-diff',
         figure=balancesFigure
@@ -71,10 +106,18 @@ app.layout = html.Div(children=[
         step=0.01,
         value=0.2
     ),
-    html.Div(id='slider-output-difference-weight')
+        dbc.Row(
+            dbc.Col(
+                html.Div(id='slider-output-difference-weight',style=center_style), width=4, ),
+                justify="center",
+            ),
         ]),
         
-        dcc.Tab(label='Analyse ratio négatif par Balance', children=[
+        dcc.Tab(label='Analyse ratio négatif par Balance', style=tab_style, selected_style=tab_selected_style, children=[
+            dbc.Card(
+            dbc.CardBody("Ce graphe intéractif permet d'étudier la masse négative comme un indicateur de balance défectueuse. Le seuil de l'indicateur peut être modifié grâce au Slider. Un point représente une balance."),
+            className="mb-3",
+        ),
             dcc.Graph(
         id='data-graph-negative-rate',
         figure=negWeightBalances
@@ -87,9 +130,24 @@ app.layout = html.Div(children=[
         value=0.02
 
     ),
-    html.Div(id='slider-output-container')
+    dbc.Row(
+            dbc.Col(
+                html.Div(id='slider-output-container'), width=4),
+                justify="center",
+            )
+    
         ]),
-        dcc.Tab(label='Analyse TAR Exception par Balance', children=[
+        dcc.Tab(label='Analyse TAR Exception par Balance', style=tab_style, selected_style=tab_selected_style, children=[
+                        dbc.Card(
+            dbc.CardBody(
+                [
+
+                    html.P("Ce graphe intéractif permet d'étudier l'occurence de TAR Exception comme un indicateur de balance défectueuse. Le seuil de l'indicateur peut être modifié grâce au Slider. Un point représente une balance.")
+
+                ]
+                ),
+            className="mb-3",
+        ),
             dcc.Graph(
         id='data-graph-tar-exception',
         figure=tarExceptionBalances
@@ -103,10 +161,15 @@ app.layout = html.Div(children=[
         value=0.05
 
     ),
-    html.Div(id='slider-output-tar-exception-rate')
+        dbc.Row(
+            dbc.Col(
+                html.Div(id='slider-output-tar-exception-rate'), width=4, ),
+                justify="center",
+            )
+    
         ]),
     
-    dcc.Tab(label='Balances classés défectueuses', children=[
+    dcc.Tab(label='Balances classés défectueuses', style=tab_style, selected_style=tab_selected_style, children=[
         html.Div(id='slider-output-container-neg'),
         html.Div(id='slider-output-container-tar'),
         html.Div(id='slider-output-container-wgt'),
