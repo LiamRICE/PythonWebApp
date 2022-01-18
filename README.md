@@ -15,6 +15,9 @@ Réaliser l'ETL
 ```sh
 python3 etl.py
 ```
+```sh
+python3 final_data_processing.py
+```
 Lancer l'application
 ```sh
 python3 app.py
